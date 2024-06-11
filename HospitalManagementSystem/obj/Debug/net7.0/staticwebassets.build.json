@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "jrD8sEENgUZSbLqlRf10cgxumE5RKPdDG8SNy8RevBI=",
+  "Source": "HospitalManagementSystem",
+  "BasePath": "_content/HospitalManagementSystem",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
