@@ -35,12 +35,20 @@ namespace HospitalManagementSystem.Services.Implementations
 
             var response = appointments?.Select(element =>
             {
-                AppointmentDTO appointmentDto = new AppointmentDTO();
-                return _mapper.Map(element, appointmentDto);
+                var appointmentDto = new AppointmentDTO
+                {
+                    Id = element.Id,
+                    PatientEmail = element.Patient.Email,
+                    DoctorEmail = element.Doctor.Email,
+                    AppointmentDate = element.AppointmentDate,
+                    IsCancelled = element.IsCancelled
+                };
+                return appointmentDto;
             });
 
             return response;
         }
+
 
         public async Task<IEnumerable<AppointmentDTO>> GetAppointmentByPatientIdAsync(string patientId)
         {

@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Any;
-using System.Data;
-using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HospitalManagementSystem.Controllers
 {
@@ -16,21 +18,22 @@ namespace HospitalManagementSystem.Controllers
     [ApiController]
     public class AppointmentController : ControllerBase
     {
-        private readonly IAppointmentService _appointmentservice;
+        private readonly IAppointmentService _appointmentService;
         private readonly UserManager<IdentityUser> _userManager;
-        
+        private readonly IMemoryCache _memoryCache;
+        private readonly string allAppointmentsCacheKey = "allAppointments";
 
-        public AppointmentController(IAppointmentService appoinmentnservice, UserManager<IdentityUser> userManager)
+        public AppointmentController(IAppointmentService appointmentService, UserManager<IdentityUser> userManager, IMemoryCache memoryCache)
         {
-            _appointmentservice = appoinmentnservice;
+            _appointmentService = appointmentService;
             _userManager = userManager;
+            _memoryCache = memoryCache;
         }
 
         [HttpPost]
-        [Authorize(Roles = "Patient")]
-        public async Task<ActionResult> AddAppointmentAsync(CreateAppointmentDTO createAppointmentDto)
+        //[Authorize(Roles = "Patient")]
+        public async Task<ActionResult> AddAppointmentAsync([FromBody] CreateAppointmentDTO createAppointmentDto)
         {
-            // Validate DoctorId and PatientId
             var doctor = await _userManager.FindByEmailAsync(createAppointmentDto.DoctorEmail);
             var patient = await _userManager.FindByEmailAsync(createAppointmentDto.PatientEmail);
 
@@ -47,43 +50,70 @@ namespace HospitalManagementSystem.Controllers
             createAppointmentDto.PatientId = patient.Id;
             createAppointmentDto.DoctorId = doctor.Id;
 
-            await _appointmentservice.AddAppointmentAsync(createAppointmentDto);
+            await _appointmentService.AddAppointmentAsync(createAppointmentDto);
+            _memoryCache.Remove(allAppointmentsCacheKey); // Invalidate the cache
             return Ok();
-
         }
-
-
         [HttpGet]
-        [Authorize(Roles = "Patient")]
-        public async Task<ActionResult<IEnumerable<CreateAppointmentDTO>>> GetAppointmentsAsync()
+        //[Authorize(Roles = "Patient")]
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentsAsync()
         {
-           
-            var response = await _appointmentservice.GetAppointmentsAsync();
+            if (!_memoryCache.TryGetValue(allAppointmentsCacheKey, out IEnumerable<AppointmentDTO> appointments))
+            {
+                appointments = await _appointmentService.GetAppointmentsAsync();
 
-            return Ok(response);
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+
+                _memoryCache.Set(allAppointmentsCacheKey, appointments, cacheEntryOptions);
+            }
+
+            return Ok(appointments);
         }
 
-        [HttpDelete("/{id}")]
-        [Authorize(Roles = "Patient")]
+
+        [HttpDelete("{id}")]
+        //[Authorize(Roles = "Patient")]
         public async Task<ActionResult> CancelAppointmentAsync(int id)
         {
-            await _appointmentservice.CancelAppointmentAsync(id);
+            await _appointmentService.CancelAppointmentAsync(id);
+            _memoryCache.Remove(allAppointmentsCacheKey); // Invalidate the cache
+            _memoryCache.Remove($"appointment_{id}"); // Invalidate the specific cache
             return Ok();
         }
 
-        [HttpGet("/{id}")]
+        [HttpGet("{id}")]
         [Authorize(Roles = "Patient")]
-        public async Task<ActionResult<CreateAppointmentDTO>> GetAppointmentByIdAsync(int id)
+        public async Task<ActionResult<AppointmentDTO>> GetAppointmentByIdAsync(int id)
         {
-            var response = await _appointmentservice.GetAppointmentByIdAsync(id);
-            return Ok(response);
+            var cacheKey = $"appointment_{id}";
+            if (!_memoryCache.TryGetValue(cacheKey, out AppointmentDTO appointment))
+            {
+                appointment = await _appointmentService.GetAppointmentByIdAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound();
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+
+                _memoryCache.Set(cacheKey, appointment, cacheEntryOptions);
+            }
+
+            return Ok(appointment);
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Patient")]
+        //[Authorize(Roles = "Patient")]
         public async Task<IActionResult> UpdateAppointmentAsync(int id, CreateAppointmentDTO createAppointmentDto)
         {
-            // Validate DoctorId and PatientId
             var doctor = await _userManager.FindByEmailAsync(createAppointmentDto.DoctorEmail);
             var patient = await _userManager.FindByEmailAsync(createAppointmentDto.PatientEmail);
 
@@ -107,24 +137,36 @@ namespace HospitalManagementSystem.Controllers
                 DoctorId = createAppointmentDto.DoctorId,
                 AppointmentDate = createAppointmentDto.AppointmentDate,
                 IsCancelled = false
-
             };
 
-            await _appointmentservice.UpdateAppointmentAsync(appointment, id);
+            await _appointmentService.UpdateAppointmentAsync(appointment, id);
+            _memoryCache.Remove(allAppointmentsCacheKey); // Invalidate the cache
+            _memoryCache.Remove($"appointment_{id}"); // Invalidate the specific cache
             return NoContent();
         }
+
         [HttpGet("search/byPatient/{patientId}")]
         public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentByPatientIdAsync(string patientId)
         {
-            var response = await _appointmentservice.GetAppointmentByPatientIdAsync(patientId);
-
-            if (response == null || !response.Any())
+            var cacheKey = $"appointments_patient_{patientId}";
+            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<AppointmentDTO> appointments))
             {
-                return NotFound("No appointments found for the given patient ID");
+                appointments = await _appointmentService.GetAppointmentByPatientIdAsync(patientId);
+                if (appointments == null || !appointments.Any())
+                {
+                    return NotFound("No appointments found for the given patient ID");
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+
+                _memoryCache.Set(cacheKey, appointments, cacheEntryOptions);
             }
-            return Ok(response);
+
+            return Ok(appointments);
         }
-
-
     }
 }

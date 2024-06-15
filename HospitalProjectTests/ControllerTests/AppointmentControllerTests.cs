@@ -4,107 +4,148 @@ using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-public class AppointmentControllerTests
+namespace HospitalManagementSystem.Tests.Controllers
 {
-    private readonly Mock<IAppointmentService> _appointmentServiceMock;
-    private readonly Mock<UserManager<IdentityUser>> _userManagerMock;
-    private readonly AppointmentController _controller;
-
-    public AppointmentControllerTests()
+    public class AppointmentControllerTests
     {
-        _appointmentServiceMock = new Mock<IAppointmentService>();
-        _userManagerMock = MockUserManager<IdentityUser>();
-        _controller = new AppointmentController(_appointmentServiceMock.Object, _userManagerMock.Object);
-    }
+        private readonly Mock<IAppointmentService> _mockService;
+        private readonly Mock<UserManager<IdentityUser>> _mockUserManager;
+        private readonly Mock<IMemoryCache> _mockMemoryCache;
+        private readonly AppointmentController _controller;
 
-    [Fact]
-    public async Task AddAppointmentAsync_ReturnsOkResult_WhenAppointmentIsAdded()
-    {
-        // Arrange
-        var createAppointmentDto = new CreateAppointmentDTO
+        public AppointmentControllerTests()
         {
-            DoctorEmail = "doctor@example.com",
-            PatientEmail = "patient@example.com"
-        };
+            _mockService = new Mock<IAppointmentService>();
+            _mockUserManager = new Mock<UserManager<IdentityUser>>(
+                Mock.Of<IUserStore<IdentityUser>>(),
+                null, null, null, null, null, null, null, null);
+            _mockMemoryCache = new Mock<IMemoryCache>();
+            _controller = new AppointmentController(_mockService.Object, _mockUserManager.Object, _mockMemoryCache.Object);
+        }
 
-        var doctor = new IdentityUser { Email = "doctor@example.com", Id = "1" };
-        var patient = new IdentityUser { Email = "patient@example.com", Id = "2" };
-
-        _userManagerMock.Setup(x => x.FindByEmailAsync(createAppointmentDto.DoctorEmail)).ReturnsAsync(doctor);
-        _userManagerMock.Setup(x => x.FindByEmailAsync(createAppointmentDto.PatientEmail)).ReturnsAsync(patient);
-
-        // Act
-        var result = await _controller.AddAppointmentAsync(createAppointmentDto);
-
-        // Assert
-        var actionResult = Assert.IsType<OkResult>(result);
-    }
-
-   
-    [Fact]
-    public async Task CancelAppointmentAsync_ReturnsOkResult_WhenAppointmentIsCancelled()
-    {
-        // Act
-        var result = await _controller.CancelAppointmentAsync(1);
-
-        // Assert
-        var actionResult = Assert.IsType<OkResult>(result);
-    }
-
-   
-
-    [Fact]
-    public async Task UpdateAppointmentAsync_ReturnsNoContentResult_WhenAppointmentIsUpdated()
-    {
-        // Arrange
-        var createAppointmentDto = new CreateAppointmentDTO
+        [Fact]
+        public async Task AddAppointmentAsync_ShouldReturnOk()
         {
-            DoctorEmail = "doctor@example.com",
-            PatientEmail = "patient@example.com"
-        };
+            // Arrange
+            var createAppointmentDto = new CreateAppointmentDTO { DoctorEmail = "doctor@example.com", PatientEmail = "patient@example.com" };
+            var doctor = new IdentityUser { Id = "D1", Email = "doctor@example.com" };
+            var patient = new IdentityUser { Id = "P1", Email = "patient@example.com" };
 
-        var doctor = new IdentityUser { Email = "doctor@example.com", Id = "1" };
-        var patient = new IdentityUser { Email = "patient@example.com", Id = "2" };
+            _mockUserManager.Setup(um => um.FindByEmailAsync("doctor@example.com")).ReturnsAsync(doctor);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("patient@example.com")).ReturnsAsync(patient);
 
-        _userManagerMock.Setup(x => x.FindByEmailAsync(createAppointmentDto.DoctorEmail)).ReturnsAsync(doctor);
-        _userManagerMock.Setup(x => x.FindByEmailAsync(createAppointmentDto.PatientEmail)).ReturnsAsync(patient);
+            // Act
+            var result = await _controller.AddAppointmentAsync(createAppointmentDto);
 
-        // Act
-        var result = await _controller.UpdateAppointmentAsync(1, createAppointmentDto);
+            // Assert
+            var okResult = Assert.IsType<OkResult>(result);
+            _mockService.Verify(s => s.AddAppointmentAsync(createAppointmentDto), Times.Once);
+            _mockMemoryCache.Verify(mc => mc.Remove(It.IsAny<string>()), Times.Once);
+        }
 
-        // Assert
-        var actionResult = Assert.IsType<NoContentResult>(result);
-    }
-
-    [Fact]
-    public async Task GetAppointmentByPatientIdAsync_ReturnsOkResult_WithListOfAppointments()
-    {
-        // Arrange
-        var appointments = new List<AppointmentDTO>
+        [Fact]
+        public async Task GetAppointmentsAsync_ShouldReturnCachedAppointments()
         {
-            new AppointmentDTO { DoctorId = "1", PatientId = "2" }
-        };
+            // Arrange
+            var cachedAppointments = new List<AppointmentDTO> { new AppointmentDTO() };
+            object cacheValue = cachedAppointments;
 
-        _appointmentServiceMock.Setup(x => x.GetAppointmentByPatientIdAsync(It.IsAny<string>())).ReturnsAsync(appointments);
+            _mockMemoryCache
+                .Setup(m => m.TryGetValue("allAppointments", out cacheValue))
+                .Returns(true);
 
-        // Act
-        var result = await _controller.GetAppointmentByPatientIdAsync("2");
+            // Act
+            var result = await _controller.GetAppointmentsAsync();
 
-        // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var returnValue = Assert.IsType<List<AppointmentDTO>>(actionResult.Value);
-        Assert.Single(returnValue);
-    }
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnValue = Assert.IsAssignableFrom<IEnumerable<AppointmentDTO>>(okResult.Value);
+            Assert.Equal(cachedAppointments, returnValue);
+        }
 
-    private Mock<UserManager<TUser>> MockUserManager<TUser>() where TUser : class
-    {
-        var store = new Mock<IUserStore<TUser>>();
-        var mgr = new Mock<UserManager<TUser>>(store.Object, null, null, null, null, null, null, null, null);
-        return mgr;
+        [Fact]
+        public async Task GetAppointmentByIdAsync_ShouldReturnCachedAppointment()
+        {
+            // Arrange
+            var appointmentId = 1;
+            var cachedAppointment = new AppointmentDTO { Id = appointmentId };
+            object cacheValue = cachedAppointment;
+
+            _mockMemoryCache
+                .Setup(m => m.TryGetValue($"appointment_{appointmentId}", out cacheValue))
+                .Returns(true);
+
+            // Act
+            var result = await _controller.GetAppointmentByIdAsync(appointmentId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnValue = Assert.IsType<AppointmentDTO>(okResult.Value);
+            Assert.Equal(cachedAppointment, returnValue);
+        }
+
+        [Fact]
+        public async Task GetAppointmentByPatientIdAsync_ShouldReturnCachedAppointments()
+        {
+            // Arrange
+            var patientId = "P1";
+            var cachedAppointments = new List<AppointmentDTO> { new AppointmentDTO() };
+            object cacheValue = cachedAppointments;
+
+            _mockMemoryCache
+                .Setup(m => m.TryGetValue($"appointments_patient_{patientId}", out cacheValue))
+                .Returns(true);
+
+            // Act
+            var result = await _controller.GetAppointmentByPatientIdAsync(patientId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnValue = Assert.IsAssignableFrom<IEnumerable<AppointmentDTO>>(okResult.Value);
+            Assert.Equal(cachedAppointments, returnValue);
+        }
+
+        [Fact]
+        public async Task CancelAppointment_ShouldReturnOk()
+        {
+            // Arrange
+            var appointmentId = 1;
+
+            // Act
+            var result = await _controller.CancelAppointmentAsync(appointmentId);
+
+            // Assert
+            var okResult = Assert.IsType<OkResult>(result);
+            _mockService.Verify(s => s.CancelAppointmentAsync(appointmentId), Times.Once);
+            _mockMemoryCache.Verify(mc => mc.Remove(It.IsAny<string>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task UpdateAppointmentAsync_ShouldReturnNoContent()
+        {
+            // Arrange
+            var appointmentId = 1;
+            var createAppointmentDto = new CreateAppointmentDTO { DoctorEmail = "doctor@example.com", PatientEmail = "patient@example.com", AppointmentDate = DateTime.Now };
+            var doctor = new IdentityUser { Id = "D1", Email = "doctor@example.com" };
+            var patient = new IdentityUser { Id = "P1", Email = "patient@example.com" };
+
+            _mockUserManager.Setup(um => um.FindByEmailAsync("doctor@example.com")).ReturnsAsync(doctor);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("patient@example.com")).ReturnsAsync(patient);
+
+            // Act
+            var result = await _controller.UpdateAppointmentAsync(appointmentId, createAppointmentDto);
+
+            // Assert
+            var noContentResult = Assert.IsType<NoContentResult>(result);
+            _mockService.Verify(s => s.UpdateAppointmentAsync(It.IsAny<Appointment>(), appointmentId), Times.Once);
+            _mockMemoryCache.Verify(mc => mc.Remove(It.IsAny<string>()), Times.Exactly(2));
+        }
     }
 }

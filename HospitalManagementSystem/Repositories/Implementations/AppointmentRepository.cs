@@ -52,7 +52,10 @@ namespace HospitalManagementSystem.Repositories.Implementations
 
         public async Task<IEnumerable<Appointment>> GetAppointmentsAsync()
         {
-           return await _context.Appointments .ToListAsync();       
+            return await _context.Appointments
+         .Include(a => a.Patient)
+         .Include(a => a.Doctor)
+         .ToListAsync();
         }
 
         public async Task UpdateAppointmentAsync(Appointment appointment, int id)

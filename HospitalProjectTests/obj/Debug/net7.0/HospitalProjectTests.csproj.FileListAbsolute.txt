@@ -126,3 +126,4 @@ C:\Users\besar\OneDrive\Desktop\HospitalManagementSystem\HospitalManagementSyste
 C:\Users\besar\OneDrive\Desktop\HospitalManagementSystem\HospitalManagementSystem\HospitalProjectTests\obj\Debug\net7.0\HospitalProjectTests.pdb
 C:\Users\besar\OneDrive\Desktop\HospitalManagementSystem\HospitalManagementSystem\HospitalProjectTests\obj\Debug\net7.0\HospitalProjectTests.genruntimeconfig.cache
 C:\Users\besar\OneDrive\Desktop\HospitalManagementSystem\HospitalManagementSystem\HospitalProjectTests\obj\Debug\net7.0\ref\HospitalProjectTests.dll
+C:\Users\besar\OneDrive\Desktop\HospitalManagementSystem\HospitalManagementSystem\HospitalProjectTests\bin\Debug\net7.0\Microsoft.EntityFrameworkCore.InMemory.dll

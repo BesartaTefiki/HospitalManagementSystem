@@ -1,12 +1,14 @@
 ﻿using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Models;
-using HospitalManagementSystem.Services.Implementations;
 using HospitalManagementSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace HospitalManagementSystem.Controllers
 {
@@ -14,85 +16,119 @@ namespace HospitalManagementSystem.Controllers
     [ApiController]
     public class PrescriptionController : ControllerBase
     {
-
-
-        private readonly IPrescriptionService _prescriptionservice;
+        private readonly IPrescriptionService _prescriptionService;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IMemoryCache _memoryCache;
+        private readonly string allPrescriptionsCacheKey = "allPrescriptions";
 
-
-        public PrescriptionController(IPrescriptionService prescriptionservice, UserManager<IdentityUser> userManager)
+        public PrescriptionController(IPrescriptionService prescriptionService, UserManager<IdentityUser> userManager, IMemoryCache memoryCache)
         {
-            _prescriptionservice = prescriptionservice;
+            _prescriptionService = prescriptionService;
             _userManager = userManager;
+            _memoryCache = memoryCache;
         }
-
 
         [HttpPost]
         [Authorize(Roles = "Doctor")]
-        public async Task<ActionResult> AddPrescriptionAsync(CreatePrescriptionDTO createprescriptionDto)
+        public async Task<ActionResult> AddPrescriptionAsync(CreatePrescriptionDTO createPrescriptionDto)
         {
             // Validate DoctorId and PatientId
-            var doctor = await _userManager.FindByIdAsync(createprescriptionDto.DoctorId);
-            var patient = await _userManager.FindByIdAsync(createprescriptionDto.PatientId);
+            var doctor = await _userManager.FindByIdAsync(createPrescriptionDto.DoctorId);
+            var patient = await _userManager.FindByIdAsync(createPrescriptionDto.PatientId);
 
             if (doctor == null)
             {
-                return BadRequest("Invalid Doctor Email.");
+                return BadRequest("Invalid Doctor ID.");
             }
 
             if (patient == null)
             {
-                return BadRequest("Invalid Patient Email.");
+                return BadRequest("Invalid Patient ID.");
             }
 
-            createprescriptionDto.PatientId = patient.Id;
-            createprescriptionDto.DoctorId = doctor.Id;
+            createPrescriptionDto.PatientId = patient.Id;
+            createPrescriptionDto.DoctorId = doctor.Id;
 
-            await _prescriptionservice.AddPrescriptionAsync(createprescriptionDto);
+            await _prescriptionService.AddPrescriptionAsync(createPrescriptionDto);
+            _memoryCache.Remove(allPrescriptionsCacheKey); // Invalidate the cache
             return Ok();
         }
 
-
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CreatePrescriptionDTO>>> GetAllPrescriptionsAsync()
+        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptionsAsync()
         {
+            if (!_memoryCache.TryGetValue(allPrescriptionsCacheKey, out IEnumerable<PrescriptionDTO> prescriptions))
+            {
+                prescriptions = await _prescriptionService.GetAllPrescriptionsAsync();
 
-            var response = await _prescriptionservice.GetAllPrescriptionsAsync();
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
 
-            return Ok(response);
+                _memoryCache.Set(allPrescriptionsCacheKey, prescriptions, cacheEntryOptions);
+            }
+
+            return Ok(prescriptions);
         }
-
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeletePrescription(int id)
         {
-            await _prescriptionservice.DeletePrescription(id);
+            await _prescriptionService.DeletePrescription(id);
+            _memoryCache.Remove(allPrescriptionsCacheKey); // Invalidate the cache
+            _memoryCache.Remove($"prescription_{id}"); // Invalidate the specific cache
             return Ok();
         }
 
-
         [HttpGet("{id}")]
-        public async Task<ActionResult<CreatePrescriptionDTO>> GetPrescriptionByIdAsync(int id)
+        public async Task<ActionResult<PrescriptionDTO>> GetPrescriptionByIdAsync(int id)
         {
-            var response = await _prescriptionservice.GetPrescriptionByIdAsync(id);
-            return Ok(response);
+            var cacheKey = $"prescription_{id}";
+            if (!_memoryCache.TryGetValue(cacheKey, out PrescriptionDTO prescription))
+            {
+                prescription = await _prescriptionService.GetPrescriptionByIdAsync(id);
+                if (prescription == null)
+                {
+                    return NotFound();
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+
+                _memoryCache.Set(cacheKey, prescription, cacheEntryOptions);
+            }
+
+            return Ok(prescription);
         }
 
         [HttpGet("search/byPatient/{patientId}")]
-        public async Task<ActionResult<IEnumerable<CreatePrescriptionDTO>>> GetPrescriptionsByPatientIdAsync(string patientId)
+        public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetPrescriptionsByPatientIdAsync(string patientId)
         {
-            var response = await _prescriptionservice.GetPrescriptionsByPatientIdAsync(patientId);
-
-            if (response == null || !response.Any())
+            var cacheKey = $"prescriptions_patient_{patientId}";
+            if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<PrescriptionDTO> prescriptions))
             {
-                return NotFound("No prescriptions found for the given patient ID");
+                prescriptions = await _prescriptionService.GetPrescriptionsByPatientIdAsync(patientId);
+                if (prescriptions == null || !prescriptions.Any())
+                {
+                    return NotFound("No prescriptions found for the given patient ID");
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(2)
+                };
+
+                _memoryCache.Set(cacheKey, prescriptions, cacheEntryOptions);
             }
 
-            return Ok(response);
+            return Ok(prescriptions);
         }
-
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePrescriptionAsync(int id, CreatePrescriptionDTO createPrescriptionDto)
@@ -123,10 +159,10 @@ namespace HospitalManagementSystem.Controllers
                 Date = createPrescriptionDto.Date
             };
 
-            await _prescriptionservice.UpdatePrescriptionAsync(prescription, id);
+            await _prescriptionService.UpdatePrescriptionAsync(prescription, id);
+            _memoryCache.Remove(allPrescriptionsCacheKey); // Invalidate the cache
+            _memoryCache.Remove($"prescription_{id}"); // Invalidate the specific cache
             return Ok();
         }
-
-
     }
 }

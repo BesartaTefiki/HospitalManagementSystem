@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "zjyG/MekorCOpejWPB63KPQsIZtAx1UNHAeoZj9NCWSaWCCRBtGKmV4Z14VEYrnxjp+h4wH2FWbLPOeMap0DFw==",
+  "dgSpecHash": "TVDa2IBbnPlbETeiZDIOwixWe/E9uM7ErIAa5jWtvrhn/H3A0O0TpRK5xlcBf4ZcbSkVO8LgfgomxAeVPv+/Vw==",
   "success": true,
   "projectFilePath": "C:\\Users\\besar\\OneDrive\\Desktop\\HospitalManagementSystem\\HospitalManagementSystem\\HospitalProjectTests\\HospitalProjectTests.csproj",
   "expectedPackageFiles": [
@@ -17,6 +17,7 @@
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.entityframeworkcore\\7.0.0\\microsoft.entityframeworkcore.7.0.0.nupkg.sha512",
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\7.0.0\\microsoft.entityframeworkcore.abstractions.7.0.0.nupkg.sha512",
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\7.0.0\\microsoft.entityframeworkcore.analyzers.7.0.0.nupkg.sha512",
+    "C:\\Users\\besar\\.nuget\\packages\\microsoft.entityframeworkcore.inmemory\\7.0.0\\microsoft.entityframeworkcore.inmemory.7.0.0.nupkg.sha512",
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\7.0.0\\microsoft.entityframeworkcore.relational.7.0.0.nupkg.sha512",
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\besar\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\7.0.0\\microsoft.extensions.caching.abstractions.7.0.0.nupkg.sha512",

@@ -23,11 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ServiceTests\" />
-    <Folder Include="RepositoryTests\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\HospitalManagementSystem\HospitalManagementSystem.csproj" />
   </ItemGroup>
 
