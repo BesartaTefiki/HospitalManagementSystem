@@ -1,6 +1,7 @@
 ﻿using HospitalManagementSystem.Data;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Repositories.Implementations;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
@@ -114,10 +115,24 @@ namespace HospitalManagementSystem.Tests.Repositories
         {
             // Arrange
             var appointments = new List<Appointment>
-            {
-                new Appointment { PatientId = "P1", DoctorId = "D1", AppointmentDate = DateTime.Now },
-                new Appointment { PatientId = "P2", DoctorId = "D2", AppointmentDate = DateTime.Now }
-            };
+    {
+        new Appointment
+        {
+            PatientId = "P1",
+            DoctorId = "D1",
+            AppointmentDate = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient1@example.com" },
+            Doctor = new IdentityUser { Email = "doctor1@example.com" }
+        },
+        new Appointment
+        {
+            PatientId = "P2",
+            DoctorId = "D2",
+            AppointmentDate = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient2@example.com" },
+            Doctor = new IdentityUser { Email = "doctor2@example.com" }
+        }
+    };
             await _context.Appointments.AddRangeAsync(appointments);
             await _context.SaveChangesAsync();
 
@@ -126,6 +141,10 @@ namespace HospitalManagementSystem.Tests.Repositories
 
             // Assert
             Assert.Equal(2, result.Count());
+            Assert.Equal("patient1@example.com", result.ElementAt(0).Patient.Email);
+            Assert.Equal("doctor1@example.com", result.ElementAt(0).Doctor.Email);
+            Assert.Equal("patient2@example.com", result.ElementAt(1).Patient.Email);
+            Assert.Equal("doctor2@example.com", result.ElementAt(1).Doctor.Email);
         }
 
         [Fact]

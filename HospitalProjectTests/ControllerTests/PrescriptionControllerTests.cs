@@ -29,17 +29,16 @@ namespace HospitalManagementSystem.Tests.Controllers
             _mockMemoryCache = new Mock<IMemoryCache>();
             _controller = new PrescriptionController(_mockService.Object, _mockUserManager.Object, _mockMemoryCache.Object);
         }
-
         [Fact]
         public async Task AddPrescriptionAsync_ShouldReturnOk()
         {
             // Arrange
-            var createPrescriptionDto = new CreatePrescriptionDTO { DoctorId = "D1", PatientId = "P1" };
+            var createPrescriptionDto = new CreatePrescriptionDTO { DoctorEmail = "doctor@example.com", PatientEmail = "patient@example.com" };
             var doctor = new IdentityUser { Id = "D1", Email = "doctor@example.com" };
             var patient = new IdentityUser { Id = "P1", Email = "patient@example.com" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync("D1")).ReturnsAsync(doctor);
-            _mockUserManager.Setup(um => um.FindByIdAsync("P1")).ReturnsAsync(patient);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("doctor@example.com")).ReturnsAsync(doctor);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("patient@example.com")).ReturnsAsync(patient);
 
             // Act
             var result = await _controller.AddPrescriptionAsync(createPrescriptionDto);
@@ -49,6 +48,7 @@ namespace HospitalManagementSystem.Tests.Controllers
             _mockService.Verify(s => s.AddPrescriptionAsync(createPrescriptionDto), Times.Once);
             _mockMemoryCache.Verify(mc => mc.Remove(It.IsAny<string>()), Times.Once);
         }
+
 
         [Fact]
         public async Task GetAllPrescriptionsAsync_ShouldReturnCachedPrescriptions()
@@ -132,12 +132,12 @@ namespace HospitalManagementSystem.Tests.Controllers
         {
             // Arrange
             var prescriptionId = 1;
-            var createPrescriptionDto = new CreatePrescriptionDTO { DoctorId = "D1", PatientId = "P1", Details = "Details", Date = DateTime.Now };
+            var createPrescriptionDto = new CreatePrescriptionDTO { DoctorEmail = "doctor@example.com", PatientEmail = "patient@example.com", Details = "Details", Date = DateTime.Now };
             var doctor = new IdentityUser { Id = "D1", Email = "doctor@example.com" };
             var patient = new IdentityUser { Id = "P1", Email = "patient@example.com" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync("D1")).ReturnsAsync(doctor);
-            _mockUserManager.Setup(um => um.FindByIdAsync("P1")).ReturnsAsync(patient);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("doctor@example.com")).ReturnsAsync(doctor);
+            _mockUserManager.Setup(um => um.FindByEmailAsync("patient@example.com")).ReturnsAsync(patient);
 
             // Act
             var result = await _controller.UpdatePrescriptionAsync(prescriptionId, createPrescriptionDto);
@@ -147,5 +147,6 @@ namespace HospitalManagementSystem.Tests.Controllers
             _mockService.Verify(s => s.UpdatePrescriptionAsync(It.IsAny<Prescription>(), prescriptionId), Times.Once);
             _mockMemoryCache.Verify(mc => mc.Remove(It.IsAny<string>()), Times.Exactly(2));
         }
+
     }
 }

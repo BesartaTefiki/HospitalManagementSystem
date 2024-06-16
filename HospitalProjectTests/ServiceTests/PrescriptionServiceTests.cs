@@ -3,6 +3,7 @@ using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Repositories.Interfaces;
 using HospitalManagementSystem.Services.Implementations;
+using Microsoft.AspNetCore.Identity;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -63,16 +64,34 @@ namespace HospitalManagementSystem.Tests.Services
             // Assert
             _prescriptionRepositoryMock.Verify(repo => repo.DeletePrescription(prescriptionId), Times.Once);
         }
-
         [Fact]
         public async Task GetAllPrescriptionsAsync_ShouldReturnPrescriptionDTOs()
         {
             // Arrange
             var prescriptions = new List<Prescription>
-            {
-                new Prescription { Id = 1, PatientId = "P1", DoctorId = "D1", Details = "Details1", Date = DateTime.Now },
-                new Prescription { Id = 2, PatientId = "P2", DoctorId = "D2", Details = "Details2", Date = DateTime.Now }
-            };
+    {
+        new Prescription
+        {
+            Id = 1,
+            PatientId = "P1",
+            DoctorId = "D1",
+            Details = "Details1",
+            Date = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient1@example.com" },
+            Doctor = new IdentityUser { Email = "doctor1@example.com" }
+        },
+        new Prescription
+        {
+            Id = 2,
+            PatientId = "P2",
+            DoctorId = "D2",
+            Details = "Details2",
+            Date = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient2@example.com" },
+            Doctor = new IdentityUser { Email = "doctor2@example.com" }
+        }
+    };
+
             _prescriptionRepositoryMock.Setup(repo => repo.GetAllPrescriptionsAsync()).ReturnsAsync(prescriptions);
 
             // Act
@@ -81,7 +100,12 @@ namespace HospitalManagementSystem.Tests.Services
             // Assert
             Assert.Equal(2, result.Count());
             Assert.All(result, item => Assert.IsType<PrescriptionDTO>(item));
+            Assert.Equal("patient1@example.com", result.ElementAt(0).PatientEmail);
+            Assert.Equal("doctor1@example.com", result.ElementAt(0).DoctorEmail);
+            Assert.Equal("patient2@example.com", result.ElementAt(1).PatientEmail);
+            Assert.Equal("doctor2@example.com", result.ElementAt(1).DoctorEmail);
         }
+
 
         [Fact]
         public async Task GetPrescriptionByIdAsync_ShouldReturnPrescriptionDTO()

@@ -31,7 +31,7 @@ namespace HospitalManagementSystem.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Patient")]
+      // [Authorize(Roles = "Patient")]
         public async Task<ActionResult> AddAppointmentAsync([FromBody] CreateAppointmentDTO createAppointmentDto)
         {
             var doctor = await _userManager.FindByEmailAsync(createAppointmentDto.DoctorEmail);
@@ -76,7 +76,7 @@ namespace HospitalManagementSystem.Controllers
 
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Patient")]
+       // [Authorize(Roles = "Patient")]
         public async Task<ActionResult> CancelAppointmentAsync(int id)
         {
             await _appointmentService.CancelAppointmentAsync(id);
@@ -86,7 +86,7 @@ namespace HospitalManagementSystem.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Patient")]
+      //  [Authorize(Roles = "Patient")]
         public async Task<ActionResult<AppointmentDTO>> GetAppointmentByIdAsync(int id)
         {
             var cacheKey = $"appointment_{id}";
@@ -111,7 +111,7 @@ namespace HospitalManagementSystem.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Patient")]
+       // [Authorize(Roles = "Patient")]
         public async Task<IActionResult> UpdateAppointmentAsync(int id, CreateAppointmentDTO createAppointmentDto)
         {
             var doctor = await _userManager.FindByEmailAsync(createAppointmentDto.DoctorEmail);

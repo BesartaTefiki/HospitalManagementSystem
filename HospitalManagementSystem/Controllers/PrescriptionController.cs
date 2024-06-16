@@ -1,4 +1,5 @@
 ﻿using HospitalManagementSystem.DTOs;
+using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -27,32 +28,41 @@ namespace HospitalManagementSystem.Controllers
             _userManager = userManager;
             _memoryCache = memoryCache;
         }
-
         [HttpPost]
-        [Authorize(Roles = "Doctor")]
-        public async Task<ActionResult> AddPrescriptionAsync(CreatePrescriptionDTO createPrescriptionDto)
+        // [Authorize(Roles = "Doctor")]
+        public async Task<ActionResult> AddPrescriptionAsync([FromBody] CreatePrescriptionDTO createPrescriptionDto)
         {
-            // Validate DoctorId and PatientId
-            var doctor = await _userManager.FindByIdAsync(createPrescriptionDto.DoctorId);
-            var patient = await _userManager.FindByIdAsync(createPrescriptionDto.PatientId);
-
-            if (doctor == null)
+            try
             {
-                return BadRequest("Invalid Doctor ID.");
-            }
+                var doctor = await _userManager.FindByEmailAsync(createPrescriptionDto.DoctorEmail);
+                var patient = await _userManager.FindByEmailAsync(createPrescriptionDto.PatientEmail);
 
-            if (patient == null)
+                if (doctor == null)
+                {
+                    return BadRequest("Invalid Doctor Email.");
+                }
+
+                if (patient == null)
+                {
+                    return BadRequest("Invalid Patient Email.");
+                }
+
+                createPrescriptionDto.PatientId = patient.Id;
+                createPrescriptionDto.DoctorId = doctor.Id;
+
+                await _prescriptionService.AddPrescriptionAsync(createPrescriptionDto);
+                _memoryCache.Remove("allPrescriptions"); // Invalidate the cache
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Invalid Patient ID.");
+                // Log the exception (ex) here for further analysis
+                Console.WriteLine($"Internal server error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            createPrescriptionDto.PatientId = patient.Id;
-            createPrescriptionDto.DoctorId = doctor.Id;
-
-            await _prescriptionService.AddPrescriptionAsync(createPrescriptionDto);
-            _memoryCache.Remove(allPrescriptionsCacheKey); // Invalidate the cache
-            return Ok();
         }
+
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PrescriptionDTO>>> GetAllPrescriptionsAsync()
@@ -129,40 +139,37 @@ namespace HospitalManagementSystem.Controllers
 
             return Ok(prescriptions);
         }
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePrescriptionAsync(int id, CreatePrescriptionDTO createPrescriptionDto)
+        public async Task<IActionResult> UpdatePrescriptionAsync(int id, [FromBody] CreatePrescriptionDTO createPrescriptionDto)
         {
-            // Validate DoctorId and PatientId
-            var doctor = await _userManager.FindByIdAsync(createPrescriptionDto.DoctorId);
-            var patient = await _userManager.FindByIdAsync(createPrescriptionDto.PatientId);
+            // Validate DoctorEmail and PatientEmail
+            var doctor = await _userManager.FindByEmailAsync(createPrescriptionDto.DoctorEmail);
+            var patient = await _userManager.FindByEmailAsync(createPrescriptionDto.PatientEmail);
 
             if (doctor == null)
             {
-                return BadRequest("Invalid Doctor ID.");
+                return BadRequest("Invalid Doctor Email.");
             }
 
             if (patient == null)
             {
-                return BadRequest("Invalid Patient ID.");
+                return BadRequest("Invalid Patient Email.");
             }
-
-            createPrescriptionDto.PatientId = patient.Id;
-            createPrescriptionDto.DoctorId = doctor.Id;
 
             var prescription = new Prescription
             {
                 Id = id,
-                PatientId = createPrescriptionDto.PatientId,
-                DoctorId = createPrescriptionDto.DoctorId,
+                PatientId = patient.Id,
+                DoctorId = doctor.Id,
                 Details = createPrescriptionDto.Details,
                 Date = createPrescriptionDto.Date
             };
 
             await _prescriptionService.UpdatePrescriptionAsync(prescription, id);
-            _memoryCache.Remove(allPrescriptionsCacheKey); // Invalidate the cache
+            _memoryCache.Remove("allPrescriptions"); // Invalidate the cache
             _memoryCache.Remove($"prescription_{id}"); // Invalidate the specific cache
             return Ok();
         }
+
     }
 }

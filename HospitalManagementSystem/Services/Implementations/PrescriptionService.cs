@@ -23,8 +23,8 @@ namespace HospitalManagementSystem.Services.Implementations
         {
             var prescription = _mapper.Map<Prescription>(createPrescriptionDto);
             await _prescriptionRepository.AddPrescriptionAsync(prescription);
-
         }
+
 
         public async Task DeletePrescription(int id)
         {
@@ -35,10 +35,13 @@ namespace HospitalManagementSystem.Services.Implementations
         {
             var prescriptions = await _prescriptionRepository.GetAllPrescriptionsAsync();
 
-            var response = prescriptions?.Select(element =>
+            var response = prescriptions?.Select(element => new PrescriptionDTO
             {
-                PrescriptionDTO prescriptionDto = new PrescriptionDTO();
-                return _mapper.Map(element, prescriptionDto);
+                Id = element.Id,
+                PatientEmail = element.Patient.Email,
+                DoctorEmail = element.Doctor.Email,
+                Details = element.Details,
+                Date = element.Date
             });
 
             return response;

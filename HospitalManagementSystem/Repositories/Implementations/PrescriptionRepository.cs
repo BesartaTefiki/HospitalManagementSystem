@@ -15,15 +15,24 @@ namespace HospitalManagementSystem.Repositories.Implementations
         }
         public async Task AddPrescriptionAsync(Prescription prescription)
         {
-            Prescription requestBody = new Prescription();
+            try
+            {
+                Prescription requestBody = new Prescription
+                {
+                    PatientId = prescription.PatientId,
+                    DoctorId = prescription.DoctorId,
+                    Details = prescription.Details,
+                    Date = prescription.Date
+                };
 
-            requestBody.PatientId = prescription.PatientId;
-            requestBody.DoctorId = prescription.DoctorId;
-            requestBody.Details = prescription.Details;
-            requestBody.Date = prescription.Date;
-
-            _context.Prescriptions.Add(requestBody);
-            await _context.SaveChangesAsync();
+                _context.Prescriptions.Add(requestBody);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding prescription: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<Prescription> GetPrescriptionByIdAsync(int id)
@@ -75,7 +84,11 @@ namespace HospitalManagementSystem.Repositories.Implementations
 
         public async Task<IEnumerable<Prescription>> GetAllPrescriptionsAsync()
         {
-            return await _context.Prescriptions.ToListAsync();
+            return await _context.Prescriptions
+                .Include(p => p.Patient)
+                .Include(p => p.Doctor)
+                .ToListAsync();
         }
+
     }
 }

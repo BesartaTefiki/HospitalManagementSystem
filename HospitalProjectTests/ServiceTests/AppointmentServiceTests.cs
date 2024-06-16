@@ -3,12 +3,14 @@ using HospitalManagementSystem.DTOs;
 using HospitalManagementSystem.Models;
 using HospitalManagementSystem.Repositories.Interfaces;
 using HospitalManagementSystem.Services.Implementations;
+using Microsoft.AspNetCore.Identity;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+
 
 namespace HospitalManagementSystem.Tests.Services
 {
@@ -62,16 +64,31 @@ namespace HospitalManagementSystem.Tests.Services
             // Assert
             _appointmentRepositoryMock.Verify(repo => repo.CancelAppointmentAsync(appointmentId), Times.Once);
         }
-
         [Fact]
         public async Task GetAppointmentsAsync_ShouldReturnAppointmentDTOs()
         {
             // Arrange
             var appointments = new List<Appointment>
-            {
-                new Appointment { Id = 1, PatientId = "P1", DoctorId = "D1", AppointmentDate = DateTime.Now },
-                new Appointment { Id = 2, PatientId = "P2", DoctorId = "D2", AppointmentDate = DateTime.Now }
-            };
+    {
+        new Appointment
+        {
+            Id = 1,
+            PatientId = "P1",
+            DoctorId = "D1",
+            AppointmentDate = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient1@example.com" },
+            Doctor = new IdentityUser { Email = "doctor1@example.com" }
+        },
+        new Appointment
+        {
+            Id = 2,
+            PatientId = "P2",
+            DoctorId = "D2",
+            AppointmentDate = DateTime.Now,
+            Patient = new IdentityUser { Email = "patient2@example.com" },
+            Doctor = new IdentityUser { Email = "doctor2@example.com" }
+        }
+    };
             _appointmentRepositoryMock.Setup(repo => repo.GetAppointmentsAsync()).ReturnsAsync(appointments);
 
             // Act
@@ -80,27 +97,43 @@ namespace HospitalManagementSystem.Tests.Services
             // Assert
             Assert.Equal(2, result.Count());
             Assert.All(result, item => Assert.IsType<AppointmentDTO>(item));
+            Assert.Equal("patient1@example.com", result.ElementAt(0).PatientEmail);
+            Assert.Equal("doctor1@example.com", result.ElementAt(0).DoctorEmail);
+            Assert.Equal("patient2@example.com", result.ElementAt(1).PatientEmail);
+            Assert.Equal("doctor2@example.com", result.ElementAt(1).DoctorEmail);
         }
 
         [Fact]
         public async Task GetAppointmentByPatientIdAsync_ShouldReturnAppointmentDTOs()
         {
             // Arrange
-            var patientId = "P1";
+            var patientEmail = "patient@example.com";
+            var doctorEmail = "doctor@example.com";
             var appointments = new List<Appointment>
-            {
-                new Appointment { Id = 1, PatientId = "P1", DoctorId = "D1", AppointmentDate = DateTime.Now }
-            };
-            _appointmentRepositoryMock.Setup(repo => repo.GetAppointmentByPatientIdAsync(patientId)).ReturnsAsync(appointments);
+    {
+        new Appointment
+        {
+            Id = 1,
+            PatientId = "P1",
+            DoctorId = "D1",
+            AppointmentDate = DateTime.Now,
+            Patient = new IdentityUser { Email = patientEmail },
+            Doctor = new IdentityUser { Email = doctorEmail }
+        }
+    };
+
+            _appointmentRepositoryMock.Setup(repo => repo.GetAppointmentByPatientIdAsync(It.IsAny<string>())).ReturnsAsync(appointments);
 
             // Act
-            var result = await _appointmentService.GetAppointmentByPatientIdAsync(patientId);
+            var result = await _appointmentService.GetAppointmentByPatientIdAsync("P1");
 
             // Assert
             Assert.Single(result);
-            Assert.Equal(patientId, result.First().PatientId);
+            Assert.Equal(patientEmail, result.First().PatientEmail);
             Assert.All(result, item => Assert.IsType<AppointmentDTO>(item));
         }
+
+
 
         [Fact]
         public async Task GetAppointmentByIdAsync_ShouldReturnAppointmentDTO()
