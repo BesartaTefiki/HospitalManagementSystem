@@ -13,6 +13,7 @@ namespace HospitalManagementSystem.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
         private readonly AppDbContext _context;
         private readonly TokenService _tokenService;
@@ -80,6 +81,7 @@ namespace HospitalManagementSystem.Controllers
                 return Unauthorized();
             }
 
+            var roles = await _userManager.GetRolesAsync(managedUser);
             var accessToken = await _tokenService.CreateToken(userInDb);
             await _context.SaveChangesAsync();
 
@@ -88,6 +90,7 @@ namespace HospitalManagementSystem.Controllers
                 Username = userInDb.UserName,
                 Email = userInDb.Email,
                 Token = accessToken,
+                Roles = roles
             });
         }
 

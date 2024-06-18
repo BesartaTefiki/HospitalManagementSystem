@@ -10,6 +10,6 @@ namespace HospitalManagementSystem.Repositories.Interfaces
         Task UpdateAppointmentAsync(Appointment appointment, int id);
         Task CancelAppointmentAsync(int id);
 
-        Task<IEnumerable<Appointment>> GetAppointmentByPatientIdAsync(string PatientId);
+        Task<IEnumerable<Appointment>> GetAppointmentsByPatientEmailAsync(string patientEmail);
     }
 }

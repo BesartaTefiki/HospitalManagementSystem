@@ -145,16 +145,16 @@ namespace HospitalManagementSystem.Controllers
             return NoContent();
         }
 
-        [HttpGet("search/byPatient/{patientId}")]
-        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentByPatientIdAsync(string patientId)
+        [HttpGet("search/byPatientEmail/{patientEmail}")]
+        public async Task<ActionResult<IEnumerable<AppointmentDTO>>> GetAppointmentByPatientEmailAsync(string patientEmail)
         {
-            var cacheKey = $"appointments_patient_{patientId}";
+            var cacheKey = $"appointments_patient_{patientEmail}";
             if (!_memoryCache.TryGetValue(cacheKey, out IEnumerable<AppointmentDTO> appointments))
             {
-                appointments = await _appointmentService.GetAppointmentByPatientIdAsync(patientId);
+                appointments = await _appointmentService.GetAppointmentByPatientEmailAsync(patientEmail);
                 if (appointments == null || !appointments.Any())
                 {
-                    return NotFound("No appointments found for the given patient ID");
+                    return NotFound("No appointments found for the given patient email");
                 }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions
@@ -168,5 +168,6 @@ namespace HospitalManagementSystem.Controllers
 
             return Ok(appointments);
         }
+
     }
 }

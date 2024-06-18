@@ -50,11 +50,12 @@ namespace HospitalManagementSystem.Services.Implementations
         }
 
 
-        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentByPatientIdAsync(string patientId)
+        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentByPatientEmailAsync(string patientEmail)
         {
-            var appointments = await _appointmentRepository.GetAppointmentByPatientIdAsync(patientId);
+            var appointments = await _appointmentRepository.GetAppointmentsByPatientEmailAsync(patientEmail);
             return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
         }
+
 
         public async Task<AppointmentDTO> GetAppointmentByIdAsync(int id)
         {

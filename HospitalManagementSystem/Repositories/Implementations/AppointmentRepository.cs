@@ -43,19 +43,28 @@ namespace HospitalManagementSystem.Repositories.Implementations
             return await _context.Appointments.FindAsync(id);
         }
 
-        public async Task<IEnumerable<Appointment>> GetAppointmentByPatientIdAsync(string PatientId)
+        public async Task<IEnumerable<Appointment>> GetAppointmentsByPatientEmailAsync(string patientEmail)
         {
+            var patient = await _context.Users.FirstOrDefaultAsync(u => u.Email == patientEmail);
+            if (patient == null)
+            {
+                return new List<Appointment>();
+            }
+
             return await _context.Appointments
-             .Where(a => a.PatientId == PatientId && !a.IsCancelled)
-             .ToListAsync();
+                                 .Where(a => a.PatientId == patient.Id)
+                                 .Include(a => a.Patient)
+                                 .Include(a => a.Doctor)
+                                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<Appointment>> GetAppointmentsAsync()
         {
             return await _context.Appointments
-         .Include(a => a.Patient)
-         .Include(a => a.Doctor)
-         .ToListAsync();
+             .Include(a => a.Patient)
+             .Include(a => a.Doctor)
+             .ToListAsync();
         }
 
         public async Task UpdateAppointmentAsync(Appointment appointment, int id)
