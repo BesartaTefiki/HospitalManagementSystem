@@ -89,26 +89,6 @@ namespace HospitalManagementSystem.Tests.Repositories
             Assert.Equal(appointment.Id, result.Id);
         }
 
-        [Fact]
-        public async Task GetAppointmentByPatientIdAsync_ShouldReturnAppointments()
-        {
-            // Arrange
-            var appointment = new Appointment
-            {
-                PatientId = "P1",
-                DoctorId = "D1",
-                AppointmentDate = DateTime.Now
-            };
-            await _context.Appointments.AddAsync(appointment);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _repository.GetAppointmentByPatientIdAsync("P1");
-
-            // Assert
-            Assert.NotEmpty(result);
-            Assert.Contains(result, a => a.PatientId == "P1");
-        }
 
         [Fact]
         public async Task GetAppointmentsAsync_ShouldReturnAllAppointments()

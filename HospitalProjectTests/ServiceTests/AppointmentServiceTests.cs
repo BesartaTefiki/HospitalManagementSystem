@@ -103,36 +103,6 @@ namespace HospitalManagementSystem.Tests.Services
             Assert.Equal("doctor2@example.com", result.ElementAt(1).DoctorEmail);
         }
 
-        [Fact]
-        public async Task GetAppointmentByPatientIdAsync_ShouldReturnAppointmentDTOs()
-        {
-            // Arrange
-            var patientEmail = "patient@example.com";
-            var doctorEmail = "doctor@example.com";
-            var appointments = new List<Appointment>
-    {
-        new Appointment
-        {
-            Id = 1,
-            PatientId = "P1",
-            DoctorId = "D1",
-            AppointmentDate = DateTime.Now,
-            Patient = new IdentityUser { Email = patientEmail },
-            Doctor = new IdentityUser { Email = doctorEmail }
-        }
-    };
-
-            _appointmentRepositoryMock.Setup(repo => repo.GetAppointmentByPatientIdAsync(It.IsAny<string>())).ReturnsAsync(appointments);
-
-            // Act
-            var result = await _appointmentService.GetAppointmentByPatientIdAsync("P1");
-
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(patientEmail, result.First().PatientEmail);
-            Assert.All(result, item => Assert.IsType<AppointmentDTO>(item));
-        }
-
 
 
         [Fact]

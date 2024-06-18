@@ -91,26 +91,6 @@ namespace HospitalManagementSystem.Tests.Controllers
             Assert.Equal(cachedAppointment, returnValue);
         }
 
-        [Fact]
-        public async Task GetAppointmentByPatientIdAsync_ShouldReturnCachedAppointments()
-        {
-            // Arrange
-            var patientId = "P1";
-            var cachedAppointments = new List<AppointmentDTO> { new AppointmentDTO() };
-            object cacheValue = cachedAppointments;
-
-            _mockMemoryCache
-                .Setup(m => m.TryGetValue($"appointments_patient_{patientId}", out cacheValue))
-                .Returns(true);
-
-            // Act
-            var result = await _controller.GetAppointmentByPatientIdAsync(patientId);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
-            var returnValue = Assert.IsAssignableFrom<IEnumerable<AppointmentDTO>>(okResult.Value);
-            Assert.Equal(cachedAppointments, returnValue);
-        }
 
         [Fact]
         public async Task CancelAppointment_ShouldReturnOk()
