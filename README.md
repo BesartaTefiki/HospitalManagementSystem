@@ -44,3 +44,22 @@ The **Hospital Management System (HMS)** is designed to streamline and automate 
 ```sh
 git clone https://github.com/your-username/hospital-management-system.git
 cd hospital-management-system
+
+Navigate to the backend project directory
+Install the required packages:
+Update the appsettings.json file with your PostgreSQL connection string:
+
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Database=HospitalDB;Username=your-username;Password=your-password"
+}
+
+Apply migrations to set up the database schema
+Run the backend server
+Install the required packages:
+
+npm install
+Run the frontend development server:
+npm start
+Open your browser and navigate to http://localhost:3000 to access the frontend.
+The backend API will be running on https://localhost:7161.
+
