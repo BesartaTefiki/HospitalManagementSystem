@@ -1,0 +1,47 @@
+/* Register.css */
+
+/* Background image for the register form page */
+.register-background {
+    background-image: url('/public/pictures/doctor.jpg'); /* Replace with the correct path to your image */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Styling the register form container */
+  .register-container {
+    background: rgba(255, 255, 255, 0.85);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    margin: 0 20px;
+  }
+  
+  /* Styling the register form */
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .register-form .MuiTextField-root {
+    background: white;
+  }
+  
+  .register-form .MuiButton-root {
+    margin-top: 20px;
+    background-color: #4caf50; /* Different color for the button */
+  }
+  
+  .register-form .MuiButton-root:hover {
+    background-color: #45a049; /* Hover effect for the button */
+  }
+  
+  .register-form .MuiTypography-root {
+    margin-top: 10px;
+  }
+  

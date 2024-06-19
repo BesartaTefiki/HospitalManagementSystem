@@ -1,0 +1,41 @@
+/* AppointmentList.css */
+
+.appointment-list-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .appointment-card {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .appointment-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .appointment-card-title {
+    color: #007BFF;
+    font-weight: bold;
+  }
+  
+  .appointment-card-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .appointment-card-actions .MuiButton-root {
+    flex: 1;
+  }
+  
+  .appointment-card-actions .MuiButton-root + .MuiButton-root {
+    margin-left: 10px;
+  }
+  

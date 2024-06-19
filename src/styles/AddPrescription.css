@@ -1,0 +1,28 @@
+.add-prescription-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('/public/pictures/hospitall.jpg'); /* Update with the correct path */
+    background-size: cover;
+    background-position: center;
+    padding: 20px;
+  }
+  
+  .add-prescription-form {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .add-prescription-form .MuiTextField-root {
+    margin-bottom: 20px;
+  }
+  
+  .add-prescription-form .MuiButton-root {
+    margin-top: 20px;
+  }
+  

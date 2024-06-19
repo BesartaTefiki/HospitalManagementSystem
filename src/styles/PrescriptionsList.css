@@ -1,0 +1,41 @@
+/* PrescriptionsList.css */
+
+.prescriptions-list-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .prescription-card {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .prescription-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .prescription-card-title {
+    color: #007BFF;
+    font-weight: bold;
+  }
+  
+  .prescription-card-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .prescription-card-actions .MuiButton-root {
+    flex: 1;
+  }
+  
+  .prescription-card-actions .MuiButton-root + .MuiButton-root {
+    margin-left: 10px;
+  }
+  

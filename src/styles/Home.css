@@ -1,0 +1,51 @@
+/* Home.css */
+
+.hero-backgroundHome {
+  background-image: url('/public/pictures/hospital.jpg');
+  background-size: cover; /* Ensure the image covers the whole area */
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  position: relative; /* Add relative positioning */
+  margin: 0; /* Remove margin-top to align content properly */
+}
+
+.hero-content {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 50px; /* Adjust padding for better spacing */
+  border-radius: 10px; /* Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
+  max-width: 80%; /* Limit the width of the content area */
+  margin: 0 20px; /* Add margin to prevent overflow */
+}
+
+/* Add some nice typography */
+.hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.hero-content a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #007BFF; /* Button color */
+  transition: background-color 0.3s ease;
+}
+
+.hero-content a:hover {
+  background-color: #0056b3; /* Darker button color on hover */
+}

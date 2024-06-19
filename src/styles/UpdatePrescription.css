@@ -1,0 +1,42 @@
+/* UpdatePrescription.css */
+
+/* Background image for the update prescription page */
+.update-prescription-background {
+    background-image: url('/public/pictures/hospitall.jpg'); /* Replace with the correct path to your image */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Styling the update prescription container */
+  .update-prescription-container {
+    background: rgba(255, 255, 255, 0.85);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    margin: 0 20px;
+  }
+  
+  /* Styling the update prescription form */
+  .update-prescription-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .update-prescription-form .MuiTextField-root {
+    background: white;
+  }
+  
+  .update-prescription-form .MuiButton-root {
+    margin-top: 20px;
+  }
+  
+  .update-prescription-form .MuiTypography-root {
+    margin-top: 10px;
+  }
+  

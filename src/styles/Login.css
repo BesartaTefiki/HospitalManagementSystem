@@ -1,0 +1,39 @@
+/* Login.css */
+
+/* Background image for the login page */
+.login-background {
+    background-image: url('/public/pictures/login-background.avif'); /* Replace with the path to your image */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Styling the login container */
+  .login-container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .login-form .MuiTextField-root {
+    background: white;
+  }
+  
+  .login-form .MuiButton-root {
+    margin-top: 20px;
+  }
+  
+  .login-form .MuiTypography-root {
+    margin-top: 10px;
+  }
+  

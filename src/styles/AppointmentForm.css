@@ -1,0 +1,40 @@
+/* AppointmentForm.css */
+
+/* Background image for the appointment form page */
+.appointment-background {
+    background-image: url('/public/pictures/image.jpg'); /* Replace with the correct path to your image */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Styling the appointment form container */
+  .appointment-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Styling the appointment form */
+  .appointment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .appointment-form .MuiTextField-root {
+    background: white;
+  }
+  
+  .appointment-form .MuiButton-root {
+    margin-top: 20px;
+  }
+  
+  .appointment-form .MuiTypography-root {
+    margin-top: 10px;
+  }
+  
